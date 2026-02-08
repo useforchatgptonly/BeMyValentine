@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       { threshold: 0.2 }
     );
-
     timelineItems.forEach((item) => observer.observe(item));
   }
 
@@ -46,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const timer = setInterval(() => {
       typewriter.textContent += fullText.charAt(index);
       index += 1;
-
       if (index >= fullText.length) {
         clearInterval(timer);
         typewriter.classList.remove('typewriter');
@@ -75,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.classList.remove('open');
       }
     });
-
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         modal.classList.remove('open');
@@ -84,38 +81,56 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ------------------------------
-     😈 NO BUTTON RUNAWAY LOGIC 😈
+     😌 NO BUTTON (POLITE DODGE)
   ------------------------------ */
   const noButton = document.querySelector('[data-no-button]');
+  const yesButton = document.querySelector('[data-yes-button]');
+
   if (noButton) {
-    noButton.style.position = 'absolute';
-    noButton.style.transition = 'left 0.15s ease, top 0.15s ease';
+    noButton.style.transition = 'transform 0.2s ease';
+    noButton.style.willChange = 'transform';
 
-    const moveNoButton = () => {
-      const padding = 20;
-      const rect = noButton.getBoundingClientRect();
+    const moveSafely = () => {
+      const noRect = noButton.getBoundingClientRect();
+      const yesRect = yesButton ? yesButton.getBoundingClientRect() : null;
 
-      const maxX = window.innerWidth - rect.width - padding;
-      const maxY = window.innerHeight - rect.height - padding;
+      let x, y;
+      let attempts = 0;
 
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
+      do {
+        x = Math.random() * 140 - 70;
+        y = Math.random() * 100 - 50;
+        attempts += 1;
 
-      noButton.style.left = `${x}px`;
-      noButton.style.top = `${y}px`;
+        if (!yesRect) break;
+
+        const futureRect = {
+          left: noRect.left + x,
+          right: noRect.right + x,
+          top: noRect.top + y,
+          bottom: noRect.bottom + y
+        };
+
+        const overlaps =
+          futureRect.right > yesRect.left &&
+          futureRect.left < yesRect.right &&
+          futureRect.bottom > yesRect.top &&
+          futureRect.top < yesRect.bottom;
+
+        if (!overlaps) break;
+      } while (attempts < 10);
+
+      noButton.style.transform = `translate(${x}px, ${y}px)`;
     };
 
-    // Move on hover
-    noButton.addEventListener('mouseenter', moveNoButton);
+    // Move when hovered
+    noButton.addEventListener('mouseenter', moveSafely);
 
-    // Move on click / tap
-    noButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      moveNoButton();
+    // Move when clicked
+    noButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      moveSafely();
     });
-
-    // Mobile friendliness
-    noButton.addEventListener('touchstart', moveNoButton);
   }
 
   /* ------------------------------
